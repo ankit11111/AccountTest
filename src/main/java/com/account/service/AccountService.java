@@ -18,6 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonpatch.JsonPatch;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
 public class AccountService {
 	
 	@Autowired
@@ -31,10 +34,11 @@ public class AccountService {
 			accounts = mapper.readValue(new File(AccountConstants.jsonFileName), new TypeReference<List<Account>>() {
 			});
 			if (accounts == null || accounts.isEmpty()) {
-				throw new RuntimeException("No accounts found");
+				throw new WebApplicationException("No accounts found", Response.Status.NOT_FOUND);
 			}
 		} catch (IOException e) {
-			throw new RuntimeException("Unable to get the accounts. Please try after sometime.");
+			throw new WebApplicationException("Unable to get the accounts. Please try after sometime.",
+					Response.Status.NOT_FOUND);
 		}
 		return accounts;
 	}
@@ -45,11 +49,12 @@ public class AccountService {
 			accounts = mapper.readValue(new File(AccountConstants.jsonFileName), new TypeReference<List<Account>>() {
 			});
 			if (accounts == null || accounts.isEmpty()) {
-				throw new RuntimeException("No accounts found");
+				throw new WebApplicationException("No accounts found", Response.Status.NOT_FOUND);
 			}
 			return accounts.stream().filter(account -> accountId.equals(account.getAccountid())).findFirst().get();
 		} catch (IOException e) {
-			throw new RuntimeException("Unable to get the accounts. Please try after sometime.");
+			throw new WebApplicationException("Unable to get the accounts. Please try after sometime.",
+					Response.Status.NOT_FOUND);
 		}
 	}
 
@@ -72,7 +77,8 @@ public class AccountService {
 			}
 			mapper.writeValue(file, accounts);
 		} catch (Exception e) {
-			throw new RuntimeException("Error while processing request. Please check the input provided.");
+			throw new WebApplicationException("Error while processing request. Please check the input provided.",
+					Response.Status.BAD_REQUEST);
 		}
 	}
 
@@ -88,7 +94,8 @@ public class AccountService {
 					JsonNode patchedJSONObj = patch.apply(existingObjectNode);
 					return mapper.readValue(patchedJSONObj.toString(), Account.class);
 				} catch (Exception e) {
-					throw new RuntimeException("Error while processing json patch request.");
+					throw new WebApplicationException("Error while processing json patch request.",
+							Response.Status.BAD_REQUEST);
 				}
 			} 
 			return account;
@@ -96,7 +103,8 @@ public class AccountService {
 		try {
 			mapper.writeValue(file, accountsUpdated);
 		} catch (IOException e) {
-			throw new RuntimeException("Error while processing json patch request.");
+			throw new WebApplicationException("Error while processing json patch request.",
+					Response.Status.BAD_REQUEST);
 		}
 
 	}
